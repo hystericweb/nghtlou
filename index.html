@@ -58,9 +58,6 @@
 
         .blind-slat {
             position: absolute;
-            background-image: url('1.png');
-            background-size: 100vw 100vh;
-            background-repeat: no-repeat;
             transform-origin: center;
             transform-style: preserve-3d;
             transition: transform 0.1s ease-out;
@@ -131,6 +128,33 @@
         const cursor = document.getElementById('cursor');
         const container = document.getElementById('container');
 
+        function updatePseudoElementStyles() {
+            const slats = document.querySelectorAll('.blind-slat');
+            slats.forEach((slat, index) => {
+                const slatsWidth = window.innerWidth / 80;
+                const bgPosX = -(index * slatsWidth);
+                
+                // Create a unique style for each slat's pseudo-elements
+                const styleId = `slat-style-${index}`;
+                let existingStyle = document.getElementById(styleId);
+                if (existingStyle) {
+                    existingStyle.remove();
+                }
+                
+                const style = document.createElement('style');
+                style.id = styleId;
+                style.textContent = `
+                    .blind-slat:nth-child(${index + 1})::after {
+                        background-position: ${bgPosX}px 0px;
+                    }
+                    .blind-slat:nth-child(${index + 1})::before {
+                        background-position: ${bgPosX}px 0px;
+                    }
+                `;
+                document.head.appendChild(style);
+            });
+        }
+
         function createBlinds() {
             const blindsContainer = document.getElementById('blindsContainer');
             const slatsCount = 80; // Doubled to 80 vertical slats
@@ -147,13 +171,6 @@
                 slat.style.height = '100vh';
                 slat.style.zIndex = 100 + i;
                 
-                // Set background position for proper alignment
-                const bgPosX = -(i * slatsWidth);
-                slat.style.backgroundPosition = `${bgPosX}px 0px`;
-                
-                // Set background positions for pseudo-elements using CSS custom properties
-                slat.style.setProperty('--bg-pos-x', `${bgPosX}px`);
-                
                 blindsContainer.appendChild(slat);
             }
             
@@ -165,12 +182,8 @@
             const slats = document.querySelectorAll('.blind-slat');
             const rotation = progress * 180; // 0 to 180 degrees
             
-            slats.forEach((slat, index) => {
-                const slatsWidth = window.innerWidth / 80;
-                const bgPosX = -(index * slatsWidth);
-                
+            slats.forEach((slat) => {
                 slat.style.transform = `rotateY(${rotation}deg)`;
-                slat.style.backgroundPosition = `${bgPosX}px 0px`;
             });
         }
 
