@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fullscreen Vertical Venetian Blinds</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #000;
+            overflow: hidden;
+            cursor: none;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        .container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            perspective: 1000px;
+        }
+
+        .image-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        .image-a {
+            background-image: url('1.png');
+            z-index: 1;
+        }
+
+        .image-b {
+            background-image: url('2.png');
+            z-index: 2;
+        }
+
+        .blinds-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+        }
+
+        .blind-slat {
+            position: absolute;
+            background-image: url('1.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            transform-origin: center;
+            transform-style: preserve-3d;
+            transition: transform 0.1s ease-out;
+        }
+
+        .blind-slat::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('2.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            transform: rotateY(180deg);
+            backface-visibility: hidden;
+        }
+
+        .blind-slat::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('1.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            backface-visibility: hidden;
+        }
+
+        .cursor {
+            position: fixed;
+            width: 20px;
+            height: 20px;
+            background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.3) 70%, transparent 100%);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            mix-blend-mode: difference;
+            transition: transform 0.1s ease-out;
+        }
+
+        .cursor::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 4px;
+            height: 4px;
+            background: rgba(255,255,255,0.9);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+        }
+    </style>
+</head>
+<body>
+    <div class="cursor" id="cursor"></div>
+
+    <div class="container" id="container">
+        <div class="image-layer image-a" id="imageA"></div>
+        <div class="image-layer image-b" id="imageB"></div>
+        <div class="blinds-container" id="blindsContainer"></div>
+    </div>
+
+    <script>
+        const cursor = document.getElementById('cursor');
+        const container = document.getElementById('container');
+
+        function createBlinds() {
+            const blindsContainer = document.getElementById('blindsContainer');
+            const slatsCount = 80; // Doubled to 80 vertical slats
+            const slatsWidth = window.innerWidth / slatsCount; // Width based on viewport
+
+            // Clear existing blinds
+            blindsContainer.innerHTML = '';
+
+            for (let i = 0; i < slatsCount; i++) {
+                const slat = document.createElement('div');
+                slat.className = 'blind-slat';
+                slat.style.left = `${i * slatsWidth}px`;
+                slat.style.width = `${slatsWidth}px`;
+                slat.style.height = '100vh';
+                slat.style.zIndex = 100 + i;
+                
+                // Set background position for proper alignment
+                const bgPosX = -(i * slatsWidth);
+                slat.style.backgroundPosition = `${bgPosX}px center`;
+                
+                blindsContainer.appendChild(slat);
+            }
+        }
+
+        function updateBlinds(progress) {
+            const slats = document.querySelectorAll('.blind-slat');
+            const rotation = progress * 180; // 0 to 180 degrees
+            
+            slats.forEach((slat, index) => {
+                const slatsWidth = window.innerWidth / 80;
+                const bgPosX = -(index * slatsWidth);
+                
+                slat.style.transform = `rotateY(${rotation}deg)`;
+                
+                // Update background positions for both sides
+                slat.style.backgroundPosition = `${bgPosX}px center`;
+                
+                // Update pseudo-elements background positions
+                const beforeBgPos = `${bgPosX}px center`;
+                slat.style.setProperty('--before-bg-pos', beforeBgPos);
+                slat.style.setProperty('--after-bg-pos', `${bgPosX}px center`);
+            });
+        }
+
+        // Mouse movement handler
+        document.addEventListener('mousemove', (e) => {
+            // Update custom cursor position
+            cursor.style.left = e.clientX + 'px';
+            cursor.style.top = e.clientY + 'px';
+
+            // Horizontal movement controls rotation across full screen
+            const progress = e.clientX / window.innerWidth;
+            
+            // Clamp progress between 0 and 1
+            const clampedProgress = Math.max(0, Math.min(1, progress));
+            updateBlinds(clampedProgress);
+        });
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            createBlinds();
+        });
+
+        // Initialize
+        createBlinds();
+        updateBlinds(0); // Start showing first image
+    </script>
+</body>
+</html>
