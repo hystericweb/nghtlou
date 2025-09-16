@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fullscreen Vertical Venetian Blinds</title>
+    <title>Interactive Vertical Venetian Blinds</title>
     <style>
         * {
             margin: 0;
@@ -17,13 +17,18 @@
             cursor: none;
             width: 100vw;
             height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
         .container {
             position: relative;
-            width: 100vw;
-            height: 100vh;
+            width: 70vw;
+            height: 70vh;
             perspective: 1000px;
+            border-radius: 15px;
+            overflow: hidden;
         }
 
         .image-layer {
@@ -71,7 +76,7 @@
             width: 100%;
             height: 100%;
             background-image: url('3.png');
-            background-size: 100vw 100vh;
+            background-size: 70vw 70vh;
             background-repeat: no-repeat;
             transform: rotateY(180deg);
             backface-visibility: hidden;
@@ -85,9 +90,27 @@
             width: 100%;
             height: 100%;
             background-image: url('1.png');
-            background-size: 100vw 100vh;
+            background-size: 70vw 70vh;
             background-repeat: no-repeat;
             backface-visibility: hidden;
+        }
+
+        .brand-button {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            font-family: Arial, sans-serif;
+            font-size: 48px;
+            color: #fff;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            filter: blur(2px);
+            pointer-events: none;
+            backdrop-filter: blur(10px);
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
         }
 
         .cursor {
@@ -119,6 +142,7 @@
     <div class="cursor" id="cursor"></div>
 
     <div class="container" id="container">
+        <div class="brand-button">nghtlou</div>
         <div class="image-layer image-a" id="imageA"></div>
         <div class="image-layer image-b" id="imageB"></div>
         <div class="blinds-container" id="blindsContainer"></div>
@@ -131,7 +155,8 @@
         function updatePseudoElementStyles() {
             const slats = document.querySelectorAll('.blind-slat');
             slats.forEach((slat, index) => {
-                const slatsWidth = window.innerWidth / 80;
+                const containerRect = container.getBoundingClientRect();
+                const slatsWidth = containerRect.width / 80;
                 const bgPosX = -(index * slatsWidth);
                 
                 // Create a unique style for each slat's pseudo-elements
@@ -157,8 +182,9 @@
 
         function createBlinds() {
             const blindsContainer = document.getElementById('blindsContainer');
-            const slatsCount = 80; // Doubled to 80 vertical slats
-            const slatsWidth = window.innerWidth / slatsCount; // Width based on viewport
+            const containerRect = container.getBoundingClientRect();
+            const slatsCount = 80;
+            const slatsWidth = containerRect.width / slatsCount;
 
             // Clear existing blinds
             blindsContainer.innerHTML = '';
@@ -168,7 +194,7 @@
                 slat.className = 'blind-slat';
                 slat.style.left = `${i * slatsWidth}px`;
                 slat.style.width = `${slatsWidth}px`;
-                slat.style.height = '100vh';
+                slat.style.height = '100%';
                 slat.style.zIndex = 100 + i;
                 
                 blindsContainer.appendChild(slat);
@@ -193,12 +219,21 @@
             cursor.style.left = e.clientX + 'px';
             cursor.style.top = e.clientY + 'px';
 
-            // Horizontal movement controls rotation across full screen
-            const progress = e.clientX / window.innerWidth;
+            // Get container bounds for relative positioning
+            const containerRect = container.getBoundingClientRect();
             
-            // Clamp progress between 0 and 1
-            const clampedProgress = Math.max(0, Math.min(1, progress));
-            updateBlinds(clampedProgress);
+            // Check if mouse is within the container
+            if (e.clientX >= containerRect.left && e.clientX <= containerRect.right &&
+                e.clientY >= containerRect.top && e.clientY <= containerRect.bottom) {
+                
+                // Calculate progress relative to container width
+                const relativeX = e.clientX - containerRect.left;
+                const progress = relativeX / containerRect.width;
+                
+                // Clamp progress between 0 and 1
+                const clampedProgress = Math.max(0, Math.min(1, progress));
+                updateBlinds(clampedProgress);
+            }
         });
 
         // Handle window resize
