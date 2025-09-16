@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fullscreen Vertical Venetian Blinds</title>
+    <title>Fullscreen Vertical Venetian Blinds - 3 Images</title>
     <style>
         * {
             margin: 0;
@@ -26,27 +26,6 @@
             perspective: 1000px;
         }
 
-        .image-layer {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-        }
-
-        .image-a {
-            background-image: url('1.png');
-            z-index: 1;
-        }
-
-        .image-b {
-            background-image: url('2.png');
-            z-index: 2;
-        }
-
         .blinds-container {
             position: absolute;
             top: 0;
@@ -61,33 +40,6 @@
             transform-origin: center;
             transform-style: preserve-3d;
             transition: transform 0.1s ease-out;
-        }
-
-        .blind-slat::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-image: url('2.png');
-            background-size: 100vw 100vh;
-            background-repeat: no-repeat;
-            transform: rotateY(180deg);
-            backface-visibility: hidden;
-        }
-
-        .blind-slat::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-image: url('1.png');
-            background-size: 100vw 100vh;
-            background-repeat: no-repeat;
-            backface-visibility: hidden;
         }
 
         .cursor {
@@ -119,48 +71,18 @@
     <div class="cursor" id="cursor"></div>
 
     <div class="container" id="container">
-        <div class="image-layer image-a" id="imageA"></div>
-        <div class="image-layer image-b" id="imageB"></div>
         <div class="blinds-container" id="blindsContainer"></div>
     </div>
 
     <script>
         const cursor = document.getElementById('cursor');
-        const container = document.getElementById('container');
-
-        function updatePseudoElementStyles() {
-            const slats = document.querySelectorAll('.blind-slat');
-            slats.forEach((slat, index) => {
-                const slatsWidth = window.innerWidth / 80;
-                const bgPosX = -(index * slatsWidth);
-                
-                // Create a unique style for each slat's pseudo-elements
-                const styleId = `slat-style-${index}`;
-                let existingStyle = document.getElementById(styleId);
-                if (existingStyle) {
-                    existingStyle.remove();
-                }
-                
-                const style = document.createElement('style');
-                style.id = styleId;
-                style.textContent = `
-                    .blind-slat:nth-child(${index + 1})::after {
-                        background-position: ${bgPosX}px 0px;
-                    }
-                    .blind-slat:nth-child(${index + 1})::before {
-                        background-position: ${bgPosX}px 0px;
-                    }
-                `;
-                document.head.appendChild(style);
-            });
-        }
+        const images = ['1.png', '2.png', '3.png'];
 
         function createBlinds() {
             const blindsContainer = document.getElementById('blindsContainer');
-            const slatsCount = 80; // Doubled to 80 vertical slats
-            const slatsWidth = window.innerWidth / slatsCount; // Width based on viewport
+            const slatsCount = 80;
+            const slatsWidth = window.innerWidth / slatsCount;
 
-            // Clear existing blinds
             blindsContainer.innerHTML = '';
 
             for (let i = 0; i < slatsCount; i++) {
@@ -174,41 +96,155 @@
                 blindsContainer.appendChild(slat);
             }
             
-            // Update CSS for pseudo-elements with proper positioning
             updatePseudoElementStyles();
+        }
+
+        function updatePseudoElementStyles() {
+            const slats = document.querySelectorAll('.blind-slat');
+            slats.forEach((slat, index) => {
+                const slatsWidth = window.innerWidth / 80;
+                const bgPosX = -(index * slatsWidth);
+                
+                const styleId = `slat-style-${index}`;
+                let existingStyle = document.getElementById(styleId);
+                if (existingStyle) {
+                    existingStyle.remove();
+                }
+                
+                const style = document.createElement('style');
+                style.id = styleId;
+                style.textContent = `
+                    .blind-slat:nth-child(${index + 1})::before {
+                        content: '';
+                        position: absolute;
+                        top: 0;
+                        left: 0;
+                        width: 100%;
+                        height: 100%;
+                        background-image: url('1.png');
+                        background-size: 100vw 100vh;
+                        background-position: ${bgPosX}px 0px;
+                        background-repeat: no-repeat;
+                        backface-visibility: hidden;
+                    }
+                    .blind-slat:nth-child(${index + 1})::after {
+                        content: '';
+                        position: absolute;
+                        top: 0;
+                        left: 0;
+                        width: 100%;
+                        height: 100%;
+                        background-image: url('2.png');
+                        background-size: 100vw 100vh;
+                        background-position: ${bgPosX}px 0px;
+                        background-repeat: no-repeat;
+                        transform: rotateY(180deg);
+                        backface-visibility: hidden;
+                    }
+                `;
+                document.head.appendChild(style);
+            });
         }
 
         function updateBlinds(progress) {
             const slats = document.querySelectorAll('.blind-slat');
-            const rotation = progress * 180; // 0 to 180 degrees
             
-            slats.forEach((slat) => {
-                slat.style.transform = `rotateY(${rotation}deg)`;
+            if (progress <= 0.5) {
+                // First transition: 1.png to 2.png
+                const rotation = (progress / 0.5) * 180;
+                slats.forEach((slat) => {
+                    slat.style.transform = `rotateY(${rotation}deg)`;
+                });
+            } else {
+                // Second transition: 2.png to 3.png
+                const secondProgress = (progress - 0.5) / 0.5;
+                
+                // Update the pseudo-elements to show 2.png -> 3.png
+                if (!slats[0].dataset.secondTransition) {
+                    updateForSecondTransition();
+                    slats.forEach(slat => slat.dataset.secondTransition = 'true');
+                }
+                
+                const rotation = secondProgress * 180;
+                slats.forEach((slat) => {
+                    slat.style.transform = `rotateY(${rotation}deg)`;
+                });
+            }
+        }
+
+        function updateForSecondTransition() {
+            const slats = document.querySelectorAll('.blind-slat');
+            slats.forEach((slat, index) => {
+                const slatsWidth = window.innerWidth / 80;
+                const bgPosX = -(index * slatsWidth);
+                
+                const styleId = `slat-style-${index}`;
+                let existingStyle = document.getElementById(styleId);
+                if (existingStyle) {
+                    existingStyle.remove();
+                }
+                
+                const style = document.createElement('style');
+                style.id = styleId;
+                style.textContent = `
+                    .blind-slat:nth-child(${index + 1})::before {
+                        content: '';
+                        position: absolute;
+                        top: 0;
+                        left: 0;
+                        width: 100%;
+                        height: 100%;
+                        background-image: url('2.png');
+                        background-size: 100vw 100vh;
+                        background-position: ${bgPosX}px 0px;
+                        background-repeat: no-repeat;
+                        backface-visibility: hidden;
+                    }
+                    .blind-slat:nth-child(${index + 1})::after {
+                        content: '';
+                        position: absolute;
+                        top: 0;
+                        left: 0;
+                        width: 100%;
+                        height: 100%;
+                        background-image: url('3.png');
+                        background-size: 100vw 100vh;
+                        background-position: ${bgPosX}px 0px;
+                        background-repeat: no-repeat;
+                        transform: rotateY(180deg);
+                        backface-visibility: hidden;
+                    }
+                `;
+                document.head.appendChild(style);
             });
         }
 
         // Mouse movement handler
         document.addEventListener('mousemove', (e) => {
-            // Update custom cursor position
             cursor.style.left = e.clientX + 'px';
             cursor.style.top = e.clientY + 'px';
 
-            // Horizontal movement controls rotation across full screen
             const progress = e.clientX / window.innerWidth;
-            
-            // Clamp progress between 0 and 1
             const clampedProgress = Math.max(0, Math.min(1, progress));
             updateBlinds(clampedProgress);
         });
 
-        // Handle window resize
+        // Reset on mouse leave to prevent stuck states
+        document.addEventListener('mouseleave', () => {
+            const slats = document.querySelectorAll('.blind-slat');
+            slats.forEach(slat => {
+                slat.dataset.secondTransition = '';
+                slat.style.transform = 'rotateY(0deg)';
+            });
+            updatePseudoElementStyles();
+        });
+
         window.addEventListener('resize', () => {
             createBlinds();
         });
 
         // Initialize
         createBlinds();
-        updateBlinds(0); // Start showing first image
     </script>
 </body>
 </html>
