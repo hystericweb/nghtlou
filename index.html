@@ -22,6 +22,38 @@
             align-items: center;
         }
 
+        .video-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            opacity: 0.1;
+        }
+
+        .video-background iframe {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 100vw;
+            height: 100vh;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+        }
+
+        @media (min-aspect-ratio: 16/9) {
+            .video-background iframe {
+                height: 56.25vw;
+            }
+        }
+
+        @media (max-aspect-ratio: 16/9) {
+            .video-background iframe {
+                width: 177.78vh;
+            }
+        }
+
         .container {
             position: relative;
             width: 70vw;
@@ -48,7 +80,7 @@
         }
 
         .image-b {
-            background-image: url('2.png');
+            background-image: url('3.png');
             z-index: 2;
         }
 
@@ -137,6 +169,11 @@
 </head>
 <body>
     <div class="cursor" id="cursor"></div>
+
+    <!-- YouTube Video Background -->
+    <div class="video-background">
+        <iframe src="https://www.youtube.com/embed/-AFEDMdF87E?controls=0&autoplay=1&mute=1&playsinline=1&playlist=-AFEDMdF87E&loop=1" frameborder="0" allowfullscreen></iframe>
+    </div>
 
     <div class="container" id="container">
         <div class="brand-button">nghtlou</div>
