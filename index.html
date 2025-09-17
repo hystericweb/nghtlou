@@ -22,38 +22,6 @@
             align-items: center;
         }
 
-        .video-background {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            z-index: -1;
-            opacity: 0.2;
-        }
-
-        .video-background iframe {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 100vw;
-            height: 100vh;
-            transform: translate(-50%, -50%);
-            pointer-events: none;
-        }
-
-        @media (min-aspect-ratio: 16/9) {
-            .video-background iframe {
-                height: 56.25vw;
-            }
-        }
-
-        @media (max-aspect-ratio: 16/9) {
-            .video-background iframe {
-                width: 177.78vh;
-            }
-        }
-
         .container {
             position: relative;
             width: 70vw;
@@ -97,7 +65,8 @@
             position: absolute;
             transform-origin: center;
             transform-style: preserve-3d;
-            transition: transform 0.1s ease-out;
+            transition: transform 0.05s ease-out;
+            border-right: 1px solid rgba(0,0,0,0.1);
         }
 
         .blind-slat::before {
@@ -112,6 +81,7 @@
             background-repeat: no-repeat;
             transform: rotateY(180deg);
             backface-visibility: hidden;
+            box-shadow: inset 2px 0 4px rgba(0,0,0,0.3);
         }
 
         .blind-slat::after {
@@ -125,6 +95,7 @@
             background-size: 70vw 70vh;
             background-repeat: no-repeat;
             backface-visibility: hidden;
+            box-shadow: inset -2px 0 4px rgba(0,0,0,0.3);
         }
 
         .brand-button {
@@ -170,11 +141,6 @@
 <body>
     <div class="cursor" id="cursor"></div>
 
-    <!-- Google Drive Video Background -->
-    <div class="video-background">
-        <iframe src="https://drive.google.com/file/d/1iaayGYKxlqGKlU_U07HfyJgxVAH7yu7r/preview" frameborder="0" allowfullscreen></iframe>
-    </div>
-
     <div class="container" id="container">
         <div class="brand-button">nghtlou</div>
         <div class="image-layer image-a" id="imageA"></div>
@@ -190,7 +156,7 @@
             const slats = document.querySelectorAll('.blind-slat');
             slats.forEach((slat, index) => {
                 const containerRect = container.getBoundingClientRect();
-                const slatsWidth = containerRect.width / 80;
+                const slatsWidth = containerRect.width / 120; // Updated to match new slat count
                 const bgPosX = -(index * slatsWidth);
                 
                 // Create a unique style for each slat's pseudo-elements
@@ -217,7 +183,7 @@
         function createBlinds() {
             const blindsContainer = document.getElementById('blindsContainer');
             const containerRect = container.getBoundingClientRect();
-            const slatsCount = 80;
+            const slatsCount = 120; // More slats for finer lenticular effect
             const slatsWidth = containerRect.width / slatsCount;
 
             // Clear existing blinds
@@ -240,7 +206,16 @@
 
         function updateBlinds(progress) {
             const slats = document.querySelectorAll('.blind-slat');
-            const rotation = progress * 180; // 0 to 180 degrees
+            
+            // Create more discrete steps like a real lenticular print
+            const steps = 10;
+            const stepSize = 1 / steps;
+            const currentStep = Math.floor(progress / stepSize);
+            const stepProgress = currentStep * stepSize;
+            
+            // Sharper transition with some smoothing
+            const smoothProgress = stepProgress + (progress - stepProgress) * 0.3;
+            const rotation = smoothProgress * 180;
             
             slats.forEach((slat) => {
                 slat.style.transform = `rotateY(${rotation}deg)`;
