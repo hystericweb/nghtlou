@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fullscreen Vertical Venetian Blinds</title>
+    <title>Interactive Vertical Venetian Blinds</title>
     <style>
         * {
             margin: 0;
@@ -17,13 +17,18 @@
             cursor: none;
             width: 100vw;
             height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
         .container {
             position: relative;
-            width: 100vw;
-            height: 100vh;
+            width: 70vw;
+            height: 70vh;
             perspective: 1000px;
+            border-radius: 15px;
+            overflow: hidden;
         }
 
         .image-layer {
@@ -43,7 +48,7 @@
         }
 
         .image-b {
-            background-image: url('2.png');
+            background-image: url('3.png');
             z-index: 2;
         }
 
@@ -58,13 +63,10 @@
 
         .blind-slat {
             position: absolute;
-            background-image: url('1.png');
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
             transform-origin: center;
             transform-style: preserve-3d;
-            transition: transform 0.1s ease-out;
+            transition: transform 0.05s ease-out;
+            border-right: 1px solid rgba(0,0,0,0.1);
         }
 
         .blind-slat::before {
@@ -74,12 +76,12 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-image: url('2.png');
-            background-size: cover;
-            background-position: center;
+            background-image: url('3.png');
+            background-size: 70vw 70vh;
             background-repeat: no-repeat;
             transform: rotateY(180deg);
             backface-visibility: hidden;
+            box-shadow: inset 2px 0 4px rgba(0,0,0,0.3);
         }
 
         .blind-slat::after {
@@ -90,10 +92,25 @@
             width: 100%;
             height: 100%;
             background-image: url('1.png');
-            background-size: cover;
-            background-position: center;
+            background-size: 70vw 70vh;
             background-repeat: no-repeat;
             backface-visibility: hidden;
+            box-shadow: inset -2px 0 4px rgba(0,0,0,0.3);
+        }
+
+        .brand-button {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            font-family: Arial, sans-serif;
+            font-size: 48px;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            filter: blur(2px);
+            pointer-events: none;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
         }
 
         .cursor {
@@ -125,6 +142,7 @@
     <div class="cursor" id="cursor"></div>
 
     <div class="container" id="container">
+        <div class="brand-button">nghtlou</div>
         <div class="image-layer image-a" id="imageA"></div>
         <div class="image-layer image-b" id="imageB"></div>
         <div class="blinds-container" id="blindsContainer"></div>
@@ -134,10 +152,39 @@
         const cursor = document.getElementById('cursor');
         const container = document.getElementById('container');
 
+        function updatePseudoElementStyles() {
+            const slats = document.querySelectorAll('.blind-slat');
+            slats.forEach((slat, index) => {
+                const containerRect = container.getBoundingClientRect();
+                const slatsWidth = containerRect.width / 120; // Updated to match new slat count
+                const bgPosX = -(index * slatsWidth);
+                
+                // Create a unique style for each slat's pseudo-elements
+                const styleId = `slat-style-${index}`;
+                let existingStyle = document.getElementById(styleId);
+                if (existingStyle) {
+                    existingStyle.remove();
+                }
+                
+                const style = document.createElement('style');
+                style.id = styleId;
+                style.textContent = `
+                    .blind-slat:nth-child(${index + 1})::after {
+                        background-position: ${bgPosX}px 0px;
+                    }
+                    .blind-slat:nth-child(${index + 1})::before {
+                        background-position: ${bgPosX}px 0px;
+                    }
+                `;
+                document.head.appendChild(style);
+            });
+        }
+
         function createBlinds() {
             const blindsContainer = document.getElementById('blindsContainer');
-            const slatsCount = 80; // Doubled to 80 vertical slats
-            const slatsWidth = window.innerWidth / slatsCount; // Width based on viewport
+            const containerRect = container.getBoundingClientRect();
+            const slatsCount = 120; // More slats for finer lenticular effect
+            const slatsWidth = containerRect.width / slatsCount;
 
             // Clear existing blinds
             blindsContainer.innerHTML = '';
@@ -147,34 +194,31 @@
                 slat.className = 'blind-slat';
                 slat.style.left = `${i * slatsWidth}px`;
                 slat.style.width = `${slatsWidth}px`;
-                slat.style.height = '100vh';
+                slat.style.height = '100%';
                 slat.style.zIndex = 100 + i;
-                
-                // Set background position for proper alignment
-                const bgPosX = -(i * slatsWidth);
-                slat.style.backgroundPosition = `${bgPosX}px center`;
                 
                 blindsContainer.appendChild(slat);
             }
+            
+            // Update CSS for pseudo-elements with proper positioning
+            updatePseudoElementStyles();
         }
 
         function updateBlinds(progress) {
             const slats = document.querySelectorAll('.blind-slat');
-            const rotation = progress * 180; // 0 to 180 degrees
             
-            slats.forEach((slat, index) => {
-                const slatsWidth = window.innerWidth / 80;
-                const bgPosX = -(index * slatsWidth);
-                
+            // Create more discrete steps like a real lenticular print
+            const steps = 10;
+            const stepSize = 1 / steps;
+            const currentStep = Math.floor(progress / stepSize);
+            const stepProgress = currentStep * stepSize;
+            
+            // Sharper transition with some smoothing
+            const smoothProgress = stepProgress + (progress - stepProgress) * 0.3;
+            const rotation = smoothProgress * 180;
+            
+            slats.forEach((slat) => {
                 slat.style.transform = `rotateY(${rotation}deg)`;
-                
-                // Update background positions for both sides
-                slat.style.backgroundPosition = `${bgPosX}px center`;
-                
-                // Update pseudo-elements background positions
-                const beforeBgPos = `${bgPosX}px center`;
-                slat.style.setProperty('--before-bg-pos', beforeBgPos);
-                slat.style.setProperty('--after-bg-pos', `${bgPosX}px center`);
             });
         }
 
@@ -184,12 +228,21 @@
             cursor.style.left = e.clientX + 'px';
             cursor.style.top = e.clientY + 'px';
 
-            // Horizontal movement controls rotation across full screen
-            const progress = e.clientX / window.innerWidth;
+            // Get container bounds for relative positioning
+            const containerRect = container.getBoundingClientRect();
             
-            // Clamp progress between 0 and 1
-            const clampedProgress = Math.max(0, Math.min(1, progress));
-            updateBlinds(clampedProgress);
+            // Check if mouse is within the container
+            if (e.clientX >= containerRect.left && e.clientX <= containerRect.right &&
+                e.clientY >= containerRect.top && e.clientY <= containerRect.bottom) {
+                
+                // Calculate progress relative to container width
+                const relativeX = e.clientX - containerRect.left;
+                const progress = relativeX / containerRect.width;
+                
+                // Clamp progress between 0 and 1
+                const clampedProgress = Math.max(0, Math.min(1, progress));
+                updateBlinds(clampedProgress);
+            }
         });
 
         // Handle window resize
